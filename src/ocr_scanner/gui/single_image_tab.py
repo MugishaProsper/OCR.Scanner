@@ -14,6 +14,7 @@ from PyQt5.QtGui import QPixmap
 from ..core.image_processor import ImageProcessor
 from ..utils.image_utils import ImageUtils
 from ..config.settings import IMAGE_FILTER, PREPROCESSING_OPTIONS, DEFAULT_IMAGE_DISPLAY_SIZE, SUPPORTED_LANGUAGES
+from ..plugins.plugin_manager import plugin_manager
 
 logger = logging.getLogger(__name__)
 
@@ -86,6 +87,12 @@ class SingleImageTab(QWidget):
         
         self.preprocess_combo = QComboBox()
         self.preprocess_combo.addItems(PREPROCESSING_OPTIONS)
+        
+        # Load and add plugins
+        plugin_manager.load_plugins()
+        for plugin_name in plugin_manager.get_available_plugins():
+            self.preprocess_combo.addItem(f"Plugin: {plugin_name}")
+        
         self.preprocess_combo.currentTextChanged.connect(self.apply_preprocessing)
         preprocess_layout.addWidget(QLabel('Method:'))
         preprocess_layout.addWidget(self.preprocess_combo)
@@ -323,8 +330,18 @@ class SingleImageTab(QWidget):
         method = self.preprocess_combo.currentText()
         threshold_value = self.threshold_slider.value()
         
-        self.image = ImageProcessor.apply_preprocessing(
-            self.original_image.copy(), method, threshold_value)
+        if method.startswith("Plugin: "):
+            # Handle plugin preprocessing
+            plugin_name = method.replace("Plugin: ", "")
+            plugin = plugin_manager.get_plugin(plugin_name)
+            if plugin:
+                self.image = plugin.process(self.original_image.copy())
+            else:
+                self.image = self.original_image.copy()
+        else:
+            # Handle built-in preprocessing
+            self.image = ImageProcessor.apply_preprocessing(
+                self.original_image.copy(), method, threshold_value)
         
         if self.roi_rect:
             self.display_image_with_roi()

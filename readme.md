@@ -133,6 +133,19 @@ python ocr-scanner.py
 make run
 ```
 
+#### Using Docker:
+```bash
+# Development with GUI support (Linux)
+xhost +local:docker
+docker-compose up ocr-scanner-dev
+
+# Production deployment
+docker-compose up ocr-scanner-prod
+
+# Headless batch processing
+docker-compose up ocr-scanner-headless
+```
+
 ### Using the Application
 
 #### 1. **Load an Image**
@@ -170,6 +183,23 @@ make run
 - View detected text boxes on image
 - Green rectangles show text locations
 - Blue text shows extracted words
+
+#### 7. **Edit and Correct Text**
+- Click "Edit Text" after running OCR
+- Opens advanced text editor with correction tools
+- Apply auto-corrections for common OCR errors
+- Use find and replace functionality
+- Format text (uppercase, lowercase, title case)
+- Save corrected text back to main interface
+
+#### 8. **Advanced Settings**
+- Select OCR language from 30+ supported languages
+- Adjust confidence threshold for text detection
+- Choose from advanced preprocessing options:
+  - Auto-rotation for skewed documents
+  - Deskewing for tilted text
+  - Perspective correction for photographed documents
+- Use custom plugins for specialized preprocessing
 
 ### Batch Processing
 
@@ -217,7 +247,16 @@ ocr-scanner/
 │       │   ├── __init__.py
 │       │   ├── main_window.py        # Main application window
 │       │   ├── single_image_tab.py   # Single image processing tab
-│       │   └── batch_processing_tab.py # Batch processing tab
+│       │   ├── batch_processing_tab.py # Batch processing tab
+│       │   └── text_editor_dialog.py  # Text editing dialog
+│       ├── plugins/             # Plugin system
+│       │   ├── __init__.py
+│       │   ├── base_plugin.py        # Base plugin class
+│       │   ├── plugin_manager.py     # Plugin management
+│       │   └── builtin/              # Built-in plugins
+│       │       ├── __init__.py
+│       │       ├── enhance_contrast.py
+│       │       └── morphological_ops.py
 │       └── utils/               # Utility modules
 │           ├── __init__.py
 │           ├── export.py             # Export functionality
@@ -237,12 +276,20 @@ ocr-scanner/
 ├── setup.py                     # Setup script
 ├── pyproject.toml              # Modern Python project configuration
 ├── Makefile                    # Build and development commands
+├── docker/                     # Docker configuration
+│   └── README.md               # Docker usage instructions
+├── Dockerfile                  # Multi-stage Docker build
+├── docker-compose.yml          # Docker Compose configuration
+├── .dockerignore              # Docker ignore file
 ├── LICENSE                     # MIT License
 ├── MANIFEST.in                 # Package manifest
-├── README.md                   # This file
-├── images/                     # Sample test images
+├── CHANGELOG.md               # Version history and changes
+├── migrate.py                 # Migration script for old users
+├── setup_dev.py              # Development environment setup
+├── README.md                  # This file
+├── images/                    # Sample test images
 │   └── image.png
-└── ocr-scanner.py             # Legacy entry point (deprecated)
+└── ocr-scanner.py            # Legacy entry point (deprecated)
 ```
 
 ## Dependencies
@@ -378,23 +425,56 @@ This project uses:
 4. Run tests and linting
 5. Submit a pull request
 
+## Recent Enhancements ✨
+
+### Version 1.1.0 - Major Feature Update
+
+- [x] **Multi-language support selection** - **IMPLEMENTED**
+  - Support for 30+ languages including English, Spanish, French, German, Chinese, Japanese, Korean, Arabic, and more
+  - Language selection in both single and batch processing modes
+  - Automatic language detection capabilities
+
+- [x] **Advanced Image Processing** - **IMPLEMENTED**
+  - Auto-rotation based on text orientation
+  - Deskewing using Hough line detection
+  - Perspective correction for document scanning
+  - Enhanced preprocessing pipeline
+
+- [x] **Text Editing and Correction** - **IMPLEMENTED**
+  - Built-in text editor with correction tools
+  - Auto-correction for common OCR errors
+  - Find and replace functionality
+  - Text formatting options (uppercase, lowercase, title case)
+  - Manual correction suggestions
+
+- [x] **Plugin System** - **IMPLEMENTED**
+  - Extensible plugin architecture for custom preprocessing
+  - Built-in plugins for contrast enhancement and morphological operations
+  - Easy plugin development with base classes
+  - Dynamic plugin loading and management
+
+- [x] **Docker Containerization** - **IMPLEMENTED**
+  - Multi-stage Docker builds for development and production
+  - Docker Compose configurations
+  - Headless processing support
+  - Pre-installed language packs
+
+- [x] **OCR Confidence Threshold Adjustment** - **IMPLEMENTED**
+  - Adjustable confidence thresholds for text detection
+  - Visual feedback for low-confidence text
+  - Improved accuracy filtering
+
 ## Future Enhancements
 
-- [ ] Multi-language support selection
-- [x] Export text to file (TXT, CSV, JSON) - **IMPLEMENTED**
-- [x] Batch processing multiple images - **IMPLEMENTED**
-- [x] Professional project structure - **IMPLEMENTED**
-- [x] Comprehensive testing suite - **IMPLEMENTED**
-- [x] Development tooling and CI/CD setup - **IMPLEMENTED**
-- [ ] Text editing and correction
-- [ ] OCR confidence threshold adjustment
-- [ ] Image rotation and perspective correction
 - [ ] Batch processing with different ROI per image
 - [ ] Resume interrupted batch processing
 - [ ] Image format conversion during batch processing
-- [ ] Plugin system for custom preprocessing
 - [ ] Web interface version
-- [ ] Docker containerization
+- [ ] Mobile app version
+- [ ] Cloud processing integration
+- [ ] AI-powered text correction
+- [ ] Document layout analysis
+- [ ] Table extraction capabilities
 
 ---
 
