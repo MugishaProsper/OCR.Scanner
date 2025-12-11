@@ -75,7 +75,10 @@ PREPROCESSING_OPTIONS = [
     "Grayscale", 
     "Threshold",
     "Adaptive Threshold",
-    "Denoise"
+    "Denoise",
+    "Auto Rotate",
+    "Deskew",
+    "Perspective Correction"
 ]
 
 # Export formats

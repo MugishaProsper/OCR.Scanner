@@ -118,8 +118,29 @@ class BatchProcessor(QThread):
                                        cv2.THRESH_BINARY, 11, 2)
         elif self.preprocessing_method == 'Denoise':
             return cv2.fastNlMeansDenoisingColored(img, None, 10, 10, 7, 21)
+        elif self.preprocessing_method == 'Auto Rotate':
+            return self._auto_rotate(img)
+        elif self.preprocessing_method == 'Deskew':
+            return self._deskew_image(img)
+        elif self.preprocessing_method == 'Perspective Correction':
+            return self._correct_perspective(img)
         else:
             return img
+    
+    def _auto_rotate(self, img: np.ndarray) -> np.ndarray:
+        """Auto-rotate image based on text orientation."""
+        from ..core.image_processor import ImageProcessor
+        return ImageProcessor._auto_rotate(img)
+    
+    def _deskew_image(self, img: np.ndarray) -> np.ndarray:
+        """Deskew image using Hough line detection."""
+        from ..core.image_processor import ImageProcessor
+        return ImageProcessor._deskew_image(img)
+    
+    def _correct_perspective(self, img: np.ndarray) -> np.ndarray:
+        """Correct perspective distortion using contour detection."""
+        from ..core.image_processor import ImageProcessor
+        return ImageProcessor._correct_perspective(img)
     
     def _apply_roi(self, img: np.ndarray) -> np.ndarray:
         """Apply ROI to image."""

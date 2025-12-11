@@ -338,11 +338,14 @@ class SingleImageTab(QWidget):
             else:
                 ocr_image = self.image
             
+            # Get selected language
+            language = self.language_combo.currentData()
+            
             # Run OCR
-            text = ImageProcessor.run_ocr(ocr_image)
+            text = ImageProcessor.run_ocr(ocr_image, language)
             self.text_output.setText(text)
             self.overlay_btn.setEnabled(True)
-            logger.info("OCR completed successfully")
+            logger.info(f"OCR completed successfully with language: {language}")
             
         except Exception as e:
             error_msg = f"Error: {str(e)}"
@@ -364,13 +367,15 @@ class SingleImageTab(QWidget):
                 offset = (0, 0)
             
             # Get bounding boxes
-            data = ImageProcessor.get_text_boxes(ocr_image)
+            language = self.language_combo.currentData()
+            confidence_threshold = self.confidence_slider.value()
+            data = ImageProcessor.get_text_boxes(ocr_image, confidence_threshold, language)
             
             # Draw on original image
             overlay_img = self.original_image.copy()
             
             for i in range(len(data['text'])):
-                if int(data['conf'][i]) > 60:
+                if int(data['conf'][i]) > confidence_threshold:
                     x = data['left'][i] + offset[0]
                     y = data['top'][i] + offset[1]
                     w = data['width'][i]

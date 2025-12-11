@@ -15,7 +15,7 @@ from PyQt5.QtCore import Qt
 
 from ..core.batch_processor import BatchProcessor
 from ..utils.export import ResultExporter
-from ..config.settings import IMAGE_FILTER, PREPROCESSING_OPTIONS, EXPORT_FORMATS
+from ..config.settings import IMAGE_FILTER, PREPROCESSING_OPTIONS, EXPORT_FORMATS, SUPPORTED_LANGUAGES
 
 logger = logging.getLogger(__name__)
 
@@ -82,6 +82,14 @@ class BatchProcessingTab(QWidget):
         self.use_roi_checkbox = QCheckBox('Use ROI from Single Image Tab')
         self.use_roi_checkbox.setEnabled(False)
         batch_preprocess_layout.addWidget(self.use_roi_checkbox)
+        
+        # Language selection
+        batch_preprocess_layout.addWidget(QLabel('Language:'))
+        self.batch_language_combo = QComboBox()
+        for code, name in SUPPORTED_LANGUAGES.items():
+            self.batch_language_combo.addItem(f"{name} ({code})", code)
+        self.batch_language_combo.setCurrentText("English (eng)")
+        batch_preprocess_layout.addWidget(self.batch_language_combo)
         
         batch_preprocess_group.setLayout(batch_preprocess_layout)
         left_panel.addWidget(batch_preprocess_group)
@@ -172,6 +180,7 @@ class BatchProcessingTab(QWidget):
         # Get processing parameters
         preprocessing_method = self.batch_preprocess_combo.currentText()
         threshold_value = self.batch_threshold_slider.value()
+        language = self.batch_language_combo.currentData()
         roi_rect = None
         
         if self.use_roi_checkbox.isChecked() and self.parent_window:
@@ -190,7 +199,7 @@ class BatchProcessingTab(QWidget):
         
         # Start batch processor thread
         self.batch_processor = BatchProcessor(
-            self.batch_file_paths, preprocessing_method, threshold_value, roi_rect)
+            self.batch_file_paths, preprocessing_method, threshold_value, roi_rect, language)
         self.batch_processor.progress_updated.connect(self.update_batch_progress)
         self.batch_processor.file_processed.connect(self.add_batch_result)
         self.batch_processor.finished_processing.connect(self.batch_processing_finished)
