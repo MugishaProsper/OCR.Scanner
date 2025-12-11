@@ -31,7 +31,8 @@ class BatchProcessor(QThread):
     finished_processing = pyqtSignal()
     
     def __init__(self, file_paths: List[str], preprocessing_method: str, 
-                 threshold_value: int, roi_rect: Optional[Tuple[int, int, int, int]] = None):
+                 threshold_value: int, roi_rect: Optional[Tuple[int, int, int, int]] = None,
+                 language: str = "eng"):
         """
         Initialize batch processor.
         
@@ -46,6 +47,7 @@ class BatchProcessor(QThread):
         self.preprocessing_method = preprocessing_method
         self.threshold_value = threshold_value
         self.roi_rect = roi_rect
+        self.language = language
         self.is_cancelled = False
         
         logger.info(f"Initialized batch processor for {len(file_paths)} files")

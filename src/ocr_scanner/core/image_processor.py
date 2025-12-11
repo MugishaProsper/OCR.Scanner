@@ -71,7 +71,7 @@ class ImageProcessor:
             return img
     
     @staticmethod
-    def run_ocr(img: np.ndarray) -> str:
+    def run_ocr(img: np.ndarray, language: str = "eng") -> str:
         """
         Run OCR on image.
         
@@ -91,7 +91,7 @@ class ImageProcessor:
             
             # Run OCR with configuration
             custom_config = f'--oem 3 --psm {DEFAULT_OCR_CONFIG["page_segmentation_mode"]}'
-            text = pytesseract.image_to_string(pil_image, config=custom_config)
+            text = pytesseract.image_to_string(pil_image, lang=language, config=custom_config)
             return text.strip()
             
         except Exception as e:
@@ -99,7 +99,7 @@ class ImageProcessor:
             raise
     
     @staticmethod
-    def get_text_boxes(img: np.ndarray, confidence_threshold: int = None) -> dict:
+    def get_text_boxes(img: np.ndarray, confidence_threshold: int = None, language: str = "eng") -> dict:
         """
         Get text bounding boxes from image.
         
@@ -122,7 +122,7 @@ class ImageProcessor:
                 pil_image = Image.fromarray(rgb_image)
             
             # Get bounding box data
-            data = pytesseract.image_to_data(pil_image, output_type=pytesseract.Output.DICT)
+            data = pytesseract.image_to_data(pil_image, lang=language, output_type=pytesseract.Output.DICT)
             return data
             
         except Exception as e:

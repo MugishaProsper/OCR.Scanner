@@ -26,6 +26,45 @@ DEFAULT_OCR_CONFIG = {
     "page_segmentation_mode": 6,  # PSM_SINGLE_UNIFORM_BLOCK
 }
 
+# Supported OCR languages
+SUPPORTED_LANGUAGES = {
+    "eng": "English",
+    "spa": "Spanish", 
+    "fra": "French",
+    "deu": "German",
+    "ita": "Italian",
+    "por": "Portuguese",
+    "rus": "Russian",
+    "chi_sim": "Chinese (Simplified)",
+    "chi_tra": "Chinese (Traditional)",
+    "jpn": "Japanese",
+    "kor": "Korean",
+    "ara": "Arabic",
+    "hin": "Hindi",
+    "tha": "Thai",
+    "vie": "Vietnamese",
+    "nld": "Dutch",
+    "swe": "Swedish",
+    "nor": "Norwegian",
+    "dan": "Danish",
+    "fin": "Finnish",
+    "pol": "Polish",
+    "ces": "Czech",
+    "hun": "Hungarian",
+    "tur": "Turkish",
+    "heb": "Hebrew",
+    "ukr": "Ukrainian",
+    "bul": "Bulgarian",
+    "hrv": "Croatian",
+    "slv": "Slovenian",
+    "slk": "Slovak",
+    "ron": "Romanian",
+    "ell": "Greek",
+    "lav": "Latvian",
+    "lit": "Lithuanian",
+    "est": "Estonian"
+}
+
 # GUI settings
 DEFAULT_WINDOW_SIZE = (1400, 900)
 DEFAULT_IMAGE_DISPLAY_SIZE = (640, 480)
