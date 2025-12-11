@@ -6,8 +6,8 @@ and Tesseract that allows you to extract text from images and live camera feeds.
 """
 
 __version__ = "1.1.0"
-__author__ = "GANZA Chael"
-__email__ = "ganzac784@gmail.com"
+__author__ = "Mugisha Prosper"
+__email__ = "nelsonprox92@gmail.com"
 
 from .main import main
 from .gui.main_window import OCRScanner

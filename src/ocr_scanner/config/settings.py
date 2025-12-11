@@ -10,7 +10,7 @@ from typing import Dict, Any
 # Application constants
 APP_NAME = "OCR Scanner"
 APP_VERSION = "1.1.0"
-AUTHOR = "GANZA Chael"
+AUTHOR = "Mugisha Prosper"
 
 # File extensions
 SUPPORTED_IMAGE_FORMATS = [
