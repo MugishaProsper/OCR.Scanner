@@ -114,8 +114,23 @@ sudo apt install tesseract-ocr
 
 ### Running the Application
 
+#### If installed with pip:
 ```bash
-python ocr_scanner.py
+ocr-scanner
+```
+
+#### If running from source:
+```bash
+# From project root
+python -m src.ocr_scanner.main
+
+# Or using the old file (deprecated)
+python ocr-scanner.py
+```
+
+#### Using Make (if available):
+```bash
+make run
 ```
 
 ### Using the Application
@@ -187,13 +202,47 @@ python ocr_scanner.py
 ```
 ocr-scanner/
 │
-├── ocr-scanner.py         # Main application code with batch processing
-├── requirements.txt       # Python dependencies
-├── README.md             # This file
-├── images/               # Sample test images
+├── src/                          # Source code
+│   └── ocr_scanner/             # Main package
+│       ├── __init__.py          # Package initialization
+│       ├── main.py              # Application entry point
+│       ├── config/              # Configuration modules
+│       │   ├── __init__.py
+│       │   └── settings.py      # Application settings
+│       ├── core/                # Core processing modules
+│       │   ├── __init__.py
+│       │   ├── batch_processor.py    # Batch processing logic
+│       │   └── image_processor.py    # Image processing utilities
+│       ├── gui/                 # GUI modules
+│       │   ├── __init__.py
+│       │   ├── main_window.py        # Main application window
+│       │   ├── single_image_tab.py   # Single image processing tab
+│       │   └── batch_processing_tab.py # Batch processing tab
+│       └── utils/               # Utility modules
+│           ├── __init__.py
+│           ├── export.py             # Export functionality
+│           └── image_utils.py        # Image utility functions
+├── tests/                       # Test suite
+│   ├── __init__.py
+│   ├── test_batch_processor.py
+│   └── test_image_processor.py
+├── examples/                    # Usage examples
+│   ├── basic_usage.py
+│   └── batch_processing_example.py
+├── docs/                        # Documentation (future)
+├── assets/                      # Application assets (future)
+├── config/                      # Configuration files (future)
+├── requirements.txt             # Production dependencies
+├── requirements-dev.txt         # Development dependencies
+├── setup.py                     # Setup script
+├── pyproject.toml              # Modern Python project configuration
+├── Makefile                    # Build and development commands
+├── LICENSE                     # MIT License
+├── MANIFEST.in                 # Package manifest
+├── README.md                   # This file
+├── images/                     # Sample test images
 │   └── image.png
-├── batch_results/        # Exported batch processing results (created automatically)
-└── venv/                # Virtual environment (optional)
+└── ocr-scanner.py             # Legacy entry point (deprecated)
 ```
 
 ## Dependencies
@@ -274,17 +323,78 @@ For the assignment submission, your video should show:
 - **PIL/Pillow**: Image handling for Tesseract compatibility
 - **NumPy**: Numerical operations on image arrays
 
+## Development
+
+### Setting up Development Environment
+
+```bash
+# Clone repository
+git clone https://github.com/Chael250/ocr-scanner.git
+cd ocr-scanner
+
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install development dependencies
+make install-dev
+# or
+pip install -e ".[dev]"
+```
+
+### Development Commands
+
+```bash
+# Run tests
+make test
+
+# Run linting
+make lint
+
+# Format code
+make format
+
+# Build package
+make build
+
+# Clean build artifacts
+make clean
+```
+
+### Code Quality
+
+This project uses:
+- **Black** for code formatting
+- **isort** for import sorting
+- **flake8** for linting
+- **mypy** for type checking
+- **pytest** for testing
+
+### Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Run tests and linting
+5. Submit a pull request
+
 ## Future Enhancements
 
 - [ ] Multi-language support selection
-- [x] Export text to file (TXT, CSV) - **IMPLEMENTED**
+- [x] Export text to file (TXT, CSV, JSON) - **IMPLEMENTED**
 - [x] Batch processing multiple images - **IMPLEMENTED**
+- [x] Professional project structure - **IMPLEMENTED**
+- [x] Comprehensive testing suite - **IMPLEMENTED**
+- [x] Development tooling and CI/CD setup - **IMPLEMENTED**
 - [ ] Text editing and correction
 - [ ] OCR confidence threshold adjustment
 - [ ] Image rotation and perspective correction
 - [ ] Batch processing with different ROI per image
 - [ ] Resume interrupted batch processing
 - [ ] Image format conversion during batch processing
+- [ ] Plugin system for custom preprocessing
+- [ ] Web interface version
+- [ ] Docker containerization
 
 ---
 
