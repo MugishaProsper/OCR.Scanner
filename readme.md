@@ -139,20 +139,44 @@ python ocr_scanner.py
 - Green rectangles show text locations
 - Blue text shows extracted words
 
+### Batch Processing
+
+#### 1. **Switch to Batch Processing Tab**
+- Click on "Batch Processing" tab
+- Access batch processing features
+
+#### 2. **Select Multiple Images**
+- Click "Select Images" button
+- Choose multiple image files (Ctrl+click or Shift+click)
+- Selected files appear in the list
+
+#### 3. **Configure Batch Settings**
+- Select preprocessing method from dropdown
+- Adjust threshold if using threshold method
+- Optionally use ROI from single image tab
+
+#### 4. **Start Batch Processing**
+- Click "Start Batch OCR" button
+- Monitor progress with progress bar
+- Cancel processing if needed
+
+#### 5. **View and Export Results**
+- Results appear in the table with filename, status, and extracted text
+- Click "Export Results" to save as TXT or CSV file
+- Choose export format and location
+
 ## Project Structure
 
 ```
 ocr-scanner/
 │
-├── ocr_scanner.py          # Main application code
-├── requirements.txt        # Python dependencies
-├── README.md              # This file
-├── sample_images/         # Sample test images (optional)
-│   ├── sample1.jpg
-│   └── sample2.png
-└── screenshots/           # Screenshots for documentation
-    ├── main_window.png
-    └── demo.gif
+├── ocr-scanner.py         # Main application code with batch processing
+├── requirements.txt       # Python dependencies
+├── README.md             # This file
+├── images/               # Sample test images
+│   └── image.png
+├── batch_results/        # Exported batch processing results (created automatically)
+└── venv/                # Virtual environment (optional)
 ```
 
 ## Dependencies
@@ -236,11 +260,14 @@ For the assignment submission, your video should show:
 ## Future Enhancements
 
 - [ ] Multi-language support selection
-- [ ] Export text to file (TXT, PDF)
-- [ ] Batch processing multiple images
+- [x] Export text to file (TXT, CSV) - **IMPLEMENTED**
+- [x] Batch processing multiple images - **IMPLEMENTED**
 - [ ] Text editing and correction
 - [ ] OCR confidence threshold adjustment
 - [ ] Image rotation and perspective correction
+- [ ] Batch processing with different ROI per image
+- [ ] Resume interrupted batch processing
+- [ ] Image format conversion during batch processing
 
 ## License
 
