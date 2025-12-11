@@ -1,6 +1,6 @@
-# Advanced OCR Scanner Application
+# Advanced OCR Scanner with Batch Processing
 
-A comprehensive GUI-based OCR (Optical Character Recognition) scanner built with PyQt5 and Tesseract that allows you to extract text from images and live camera feeds.
+A professional, comprehensive GUI-based OCR (Optical Character Recognition) scanner built with PyQt5 and Tesseract. Features include single image processing, batch processing capabilities, and multiple export formats.
 
 ## Features
 
@@ -57,16 +57,33 @@ pip install -r requirements.txt
 
 ## Installation
 
-### Step 1: Clone the Repository
+### Option 1: Install from Source (Recommended for Development)
 
 ```bash
-git clone https://github.com/MugishaProsper/OCR.Scanner.git
-cd OCR.Scanner
+# Clone the repository
+git clone https://github.com/Chael250/ocr-scanner.git
+cd ocr-scanner
+
+# Create virtual environment (recommended)
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install in development mode
+pip install -e ".[dev]"
 ```
 
-### Step 2: Install Dependencies
+### Option 2: Install from PyPI (Coming Soon)
 
 ```bash
+pip install ocr-scanner
+```
+
+### Option 3: Basic Installation
+
+```bash
+# Clone and install dependencies only
+git clone https://github.com/Chael250/ocr-scanner.git
+cd ocr-scanner
 pip install -r requirements.txt
 ```
 
