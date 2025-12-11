@@ -60,8 +60,8 @@ pip install -r requirements.txt
 ### Step 1: Clone the Repository
 
 ```bash
-git clone https://github.com/Chael250/ocr-scanner.git
-cd ocr-scanner
+git clone https://github.com/MugishaProsper/OCR.Scanner.git
+cd OCR.Scanner
 ```
 
 ### Step 2: Install Dependencies
@@ -75,7 +75,7 @@ pip install -r requirements.txt
 **Windows:**
 1. Download installer from [https://github.com/UB-Mannheim/tesseract/wiki](https://github.com/UB-Mannheim/tesseract/wiki)
 2. Run installer and note installation path (usually `C:\Program Files\Tesseract-OCR`)
-3. Add Tesseract to system PATH or update the code:
+3. Add Tesseract to system PATH or update the code on Windows:
 
 ```python
 # Add this line at the top of ocr_scanner.py if needed
@@ -268,22 +268,6 @@ For the assignment submission, your video should show:
 - [ ] Batch processing with different ROI per image
 - [ ] Resume interrupted batch processing
 - [ ] Image format conversion during batch processing
-
-## License
-
-This project is created for educational purposes.
-
-## Author
-
-GANZA Chael
-ganzac784@gmail.com
-Intelligent Robotics
-
-## Acknowledgments
-
-- Tesseract OCR by Google
-- PyQt5 documentation and community
-- OpenCV contributors
 
 ---
 
