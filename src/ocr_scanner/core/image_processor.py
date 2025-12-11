@@ -114,4 +114,17 @@ class ImageProcessor:
             confidence_threshold = DEFAULT_OCR_CONFIG["confidence_threshold"]
             
         try:
-            # Convert to PIL Ima
+            # Convert to PIL Image
+            if len(img.shape) == 2:
+                pil_image = Image.fromarray(img)
+            else:
+                rgb_image = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+                pil_image = Image.fromarray(rgb_image)
+            
+            # Get bounding box data
+            data = pytesseract.image_to_data(pil_image, output_type=pytesseract.Output.DICT)
+            return data
+            
+        except Exception as e:
+            logger.error(f"Failed to get text boxes: {e}")
+            raise
