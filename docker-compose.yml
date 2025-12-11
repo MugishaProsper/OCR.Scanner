@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  ocr-scanner-dev:
+    build:
+      context: .
+      target: development
+    container_name: ocr-scanner-dev
+    volumes:
+      - .:/app
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - ocr_data:/app/data
+    environment:
+      - DISPLAY=${DISPLAY}
+      - QT_X11_NO_MITSHM=1
+    network_mode: host
+    stdin_open: true
+    tty: true
+    command: bash
+
+  ocr-scanner-prod:
+    build:
+      context: .
+      target: production
+    container_name: ocr-scanner-prod
+    volumes:
+      - ocr_data:/app/data
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+    environment:
+      - DISPLAY=${DISPLAY}
+      - QT_X11_NO_MITSHM=1
+    network_mode: host
+    restart: unless-stopped
+
+  ocr-scanner-headless:
+    build:
+      context: .
+      target: production
+    container_name: ocr-scanner-headless
+    volumes:
+      - ocr_data:/app/data
+    environment:
+      - DISPLAY=:99
+      - QT_X11_NO_MITSHM=1
+    ports:
+      - "8080:8080"
+    command: >
+      bash -c "
+        Xvfb :99 -screen 0 1024x768x24 &
+        python -m examples.batch_processing_example /app/data/results.txt /app/data/images/*.png
+      "
+    restart: unless-stopped
+
+volumes:
+  ocr_data:
+    driver: local
