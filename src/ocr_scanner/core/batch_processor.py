@@ -151,7 +151,7 @@ class BatchProcessor(QThread):
             
             # Run OCR with configuration
             custom_config = f'--oem 3 --psm {DEFAULT_OCR_CONFIG["page_segmentation_mode"]}'
-            text = pytesseract.image_to_string(pil_image, config=custom_config).strip()
+            text = pytesseract.image_to_string(pil_image, lang=self.language, config=custom_config).strip()
             
             status = "Success" if text else "No text detected"
             return text, status

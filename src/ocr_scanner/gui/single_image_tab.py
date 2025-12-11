@@ -13,7 +13,7 @@ from PyQt5.QtGui import QPixmap
 
 from ..core.image_processor import ImageProcessor
 from ..utils.image_utils import ImageUtils
-from ..config.settings import IMAGE_FILTER, PREPROCESSING_OPTIONS, DEFAULT_IMAGE_DISPLAY_SIZE
+from ..config.settings import IMAGE_FILTER, PREPROCESSING_OPTIONS, DEFAULT_IMAGE_DISPLAY_SIZE, SUPPORTED_LANGUAGES
 
 logger = logging.getLogger(__name__)
 
@@ -108,6 +108,26 @@ class SingleImageTab(QWidget):
         # OCR group
         ocr_group = QGroupBox("OCR")
         ocr_layout = QVBoxLayout()
+        
+        # Language selection
+        ocr_layout.addWidget(QLabel('Language:'))
+        self.language_combo = QComboBox()
+        for code, name in SUPPORTED_LANGUAGES.items():
+            self.language_combo.addItem(f"{name} ({code})", code)
+        self.language_combo.setCurrentText("English (eng)")
+        ocr_layout.addWidget(self.language_combo)
+        
+        # Confidence threshold
+        ocr_layout.addWidget(QLabel('Confidence Threshold:'))
+        self.confidence_slider = QSlider(Qt.Horizontal)
+        self.confidence_slider.setMinimum(0)
+        self.confidence_slider.setMaximum(100)
+        self.confidence_slider.setValue(60)
+        ocr_layout.addWidget(self.confidence_slider)
+        self.confidence_label = QLabel('60%')
+        ocr_layout.addWidget(self.confidence_label)
+        self.confidence_slider.valueChanged.connect(
+            lambda v: self.confidence_label.setText(f'{v}%'))
         
         self.ocr_btn = QPushButton('Run OCR')
         self.ocr_btn.clicked.connect(self.run_ocr)

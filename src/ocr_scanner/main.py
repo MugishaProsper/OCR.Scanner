@@ -22,7 +22,6 @@ def main():
         app = QApplication(sys.argv)
         app.setApplicationName("OCR Scanner")
         app.setApplicationVersion("1.1.0")
-        app.setOrganizationName("Chael Dev")
         
         # Create and show main window
         scanner = OCRScanner()
