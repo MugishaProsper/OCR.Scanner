@@ -1,13 +1,97 @@
 import sys
+import os
 import cv2
 import numpy as np
 import pytesseract
+from datetime import datetime
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
                              QHBoxLayout, QPushButton, QLabel, QTextEdit, 
-                             QFileDialog, QComboBox, QSlider, QGroupBox)
-from PyQt5.QtCore import Qt, QTimer, QRect
+                             QFileDialog, QComboBox, QSlider, QGroupBox,
+                             QProgressBar, QListWidget, QCheckBox, QMessageBox,
+                             QTabWidget, QTableWidget, QTableWidgetItem,
+                             QHeaderView, QAbstractItemView)
+from PyQt5.QtCore import Qt, QTimer, QRect, QThread, pyqtSignal
 from PyQt5.QtGui import QImage, QPixmap, QPainter, QPen
 from PIL import Image
+
+class BatchProcessor(QThread):
+    progress_updated = pyqtSignal(int)
+    file_processed = pyqtSignal(str, str, str)  # filename, text, status
+    finished_processing = pyqtSignal()
+    
+    def __init__(self, file_paths, preprocessing_method, threshold_value, roi_rect=None):
+        super().__init__()
+        self.file_paths = file_paths
+        self.preprocessing_method = preprocessing_method
+        self.threshold_value = threshold_value
+        self.roi_rect = roi_rect
+        self.is_cancelled = False
+        
+    def cancel(self):
+        self.is_cancelled = True
+        
+    def run(self):
+        total_files = len(self.file_paths)
+        
+        for i, file_path in enumerate(self.file_paths):
+            if self.is_cancelled:
+                break
+                
+            try:
+                # Load and process image
+                image = cv2.imread(file_path)
+                if image is None:
+                    self.file_processed.emit(os.path.basename(file_path), "", "Error: Could not load image")
+                    continue
+                
+                # Apply preprocessing
+                processed_image = self.apply_preprocessing(image)
+                
+                # Apply ROI if specified
+                if self.roi_rect:
+                    x1, y1, x2, y2 = self.roi_rect
+                    h, w = processed_image.shape[:2]
+                    x1, y1 = max(0, x1), max(0, y1)
+                    x2, y2 = min(w, x2), min(h, y2)
+                    if x2 > x1 and y2 > y1:
+                        processed_image = processed_image[y1:y2, x1:x2]
+                
+                # Convert to PIL and run OCR
+                if len(processed_image.shape) == 2:
+                    pil_image = Image.fromarray(processed_image)
+                else:
+                    rgb_image = cv2.cvtColor(processed_image, cv2.COLOR_BGR2RGB)
+                    pil_image = Image.fromarray(rgb_image)
+                
+                text = pytesseract.image_to_string(pil_image).strip()
+                status = "Success" if text else "No text detected"
+                
+                self.file_processed.emit(os.path.basename(file_path), text, status)
+                
+            except Exception as e:
+                self.file_processed.emit(os.path.basename(file_path), "", f"Error: {str(e)}")
+            
+            # Update progress
+            progress = int((i + 1) / total_files * 100)
+            self.progress_updated.emit(progress)
+        
+        self.finished_processing.emit()
+    
+    def apply_preprocessing(self, img):
+        if self.preprocessing_method == 'Grayscale':
+            return cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        elif self.preprocessing_method == 'Threshold':
+            gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+            _, processed = cv2.threshold(gray, self.threshold_value, 255, cv2.THRESH_BINARY)
+            return processed
+        elif self.preprocessing_method == 'Adaptive Threshold':
+            gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+            return cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2)
+        elif self.preprocessing_method == 'Denoise':
+            return cv2.fastNlMeansDenoisingColored(img, None, 10, 10, 7, 21)
+        else:
+            return img
+
 
 class OCRScanner(QMainWindow):
     def __init__(self):
@@ -20,17 +104,36 @@ class OCRScanner(QMainWindow):
         self.roi_end = None
         self.selecting_roi = False
         self.roi_rect = None
+        self.batch_processor = None
+        self.batch_results = []
         
         self.initUI()
         
     def initUI(self):
-        self.setWindowTitle('Advanced OCR Scanner')
-        self.setGeometry(100, 100, 1200, 800)
+        self.setWindowTitle('Advanced OCR Scanner with Batch Processing')
+        self.setGeometry(100, 100, 1400, 900)
         
-        # Central widget
+        # Central widget with tabs
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
-        main_layout = QHBoxLayout(central_widget)
+        main_layout = QVBoxLayout(central_widget)
+        
+        # Create tab widget
+        self.tab_widget = QTabWidget()
+        main_layout.addWidget(self.tab_widget)
+        
+        # Single image processing tab
+        self.single_tab = QWidget()
+        self.tab_widget.addTab(self.single_tab, "Single Image")
+        self.setup_single_tab()
+        
+        # Batch processing tab
+        self.batch_tab = QWidget()
+        self.tab_widget.addTab(self.batch_tab, "Batch Processing")
+        self.setup_batch_tab()
+    
+    def setup_single_tab(self):
+        main_layout = QHBoxLayout(self.single_tab)
         
         # Left panel - Controls
         left_panel = QVBoxLayout()
@@ -143,6 +246,106 @@ class OCRScanner(QMainWindow):
         main_layout.addLayout(left_panel, 1)
         main_layout.addLayout(middle_panel, 3)
         main_layout.addLayout(right_panel, 2)
+    
+    def setup_batch_tab(self):
+        main_layout = QHBoxLayout(self.batch_tab)
+        
+        # Left panel - Batch controls
+        left_panel = QVBoxLayout()
+        
+        # File selection group
+        file_group = QGroupBox("File Selection")
+        file_layout = QVBoxLayout()
+        
+        self.batch_load_btn = QPushButton('Select Images')
+        self.batch_load_btn.clicked.connect(self.load_batch_images)
+        file_layout.addWidget(self.batch_load_btn)
+        
+        self.batch_clear_btn = QPushButton('Clear List')
+        self.batch_clear_btn.clicked.connect(self.clear_batch_list)
+        file_layout.addWidget(self.batch_clear_btn)
+        
+        file_layout.addWidget(QLabel('Selected Files:'))
+        self.file_list = QListWidget()
+        self.file_list.setMaximumHeight(150)
+        file_layout.addWidget(self.file_list)
+        
+        file_group.setLayout(file_layout)
+        left_panel.addWidget(file_group)
+        
+        # Batch preprocessing group
+        batch_preprocess_group = QGroupBox("Batch Preprocessing")
+        batch_preprocess_layout = QVBoxLayout()
+        
+        self.batch_preprocess_combo = QComboBox()
+        self.batch_preprocess_combo.addItems(['None', 'Grayscale', 'Threshold', 
+                                            'Adaptive Threshold', 'Denoise'])
+        batch_preprocess_layout.addWidget(QLabel('Method:'))
+        batch_preprocess_layout.addWidget(self.batch_preprocess_combo)
+        
+        self.batch_threshold_slider = QSlider(Qt.Horizontal)
+        self.batch_threshold_slider.setMinimum(0)
+        self.batch_threshold_slider.setMaximum(255)
+        self.batch_threshold_slider.setValue(127)
+        batch_preprocess_layout.addWidget(QLabel('Threshold:'))
+        batch_preprocess_layout.addWidget(self.batch_threshold_slider)
+        self.batch_threshold_label = QLabel('127')
+        batch_preprocess_layout.addWidget(self.batch_threshold_label)
+        self.batch_threshold_slider.valueChanged.connect(
+            lambda v: self.batch_threshold_label.setText(str(v)))
+        
+        self.use_roi_checkbox = QCheckBox('Use ROI from Single Image Tab')
+        self.use_roi_checkbox.setEnabled(False)
+        batch_preprocess_layout.addWidget(self.use_roi_checkbox)
+        
+        batch_preprocess_group.setLayout(batch_preprocess_layout)
+        left_panel.addWidget(batch_preprocess_group)
+        
+        # Batch processing group
+        batch_process_group = QGroupBox("Processing")
+        batch_process_layout = QVBoxLayout()
+        
+        self.batch_process_btn = QPushButton('Start Batch OCR')
+        self.batch_process_btn.clicked.connect(self.start_batch_processing)
+        self.batch_process_btn.setEnabled(False)
+        batch_process_layout.addWidget(self.batch_process_btn)
+        
+        self.batch_cancel_btn = QPushButton('Cancel Processing')
+        self.batch_cancel_btn.clicked.connect(self.cancel_batch_processing)
+        self.batch_cancel_btn.setEnabled(False)
+        batch_process_layout.addWidget(self.batch_cancel_btn)
+        
+        self.progress_bar = QProgressBar()
+        batch_process_layout.addWidget(self.progress_bar)
+        
+        self.batch_export_btn = QPushButton('Export Results')
+        self.batch_export_btn.clicked.connect(self.export_batch_results)
+        self.batch_export_btn.setEnabled(False)
+        batch_process_layout.addWidget(self.batch_export_btn)
+        
+        batch_process_group.setLayout(batch_process_layout)
+        left_panel.addWidget(batch_process_group)
+        
+        left_panel.addStretch()
+        
+        # Right panel - Results table
+        right_panel = QVBoxLayout()
+        
+        right_panel.addWidget(QLabel('Batch Processing Results:'))
+        
+        self.results_table = QTableWidget()
+        self.results_table.setColumnCount(3)
+        self.results_table.setHorizontalHeaderLabels(['Filename', 'Status', 'Extracted Text'])
+        self.results_table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)
+        self.results_table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeToContents)
+        self.results_table.horizontalHeader().setSectionResizeMode(2, QHeaderView.Stretch)
+        self.results_table.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.results_table.setAlternatingRowColors(True)
+        right_panel.addWidget(self.results_table)
+        
+        # Add panels to main layout
+        main_layout.addLayout(left_panel, 1)
+        main_layout.addLayout(right_panel, 2)
         
     def load_image(self):
         file_name, _ = QFileDialog.getOpenFileName(
@@ -204,6 +407,7 @@ class OCRScanner(QMainWindow):
         if self.image is not None:
             self.display_image(self.image)
         self.clear_roi_btn.setEnabled(False)
+        self.update_roi_checkbox()
         
     def mouse_press(self, event):
         if self.selecting_roi and self.image is not None:
@@ -240,6 +444,7 @@ class OCRScanner(QMainWindow):
                 self.roi_rect = (x1, y1, x2, y2)
                 self.clear_roi_btn.setEnabled(True)
                 self.display_image_with_roi()
+                self.update_roi_checkbox()
                 
     def display_image_with_roi(self):
         if self.image is None:
@@ -380,6 +585,181 @@ class OCRScanner(QMainWindow):
             self.display_image(overlay_img)
         except Exception as e:
             self.text_output.append(f"\nOverlay Error: {str(e)}")
+    
+    def load_batch_images(self):
+        file_names, _ = QFileDialog.getOpenFileNames(
+            self, "Select Images for Batch Processing", "", 
+            "Image Files (*.png *.jpg *.jpeg *.bmp *.tiff)")
+        
+        if file_names:
+            self.file_list.clear()
+            for file_name in file_names:
+                self.file_list.addItem(os.path.basename(file_name))
+            
+            # Store full paths for processing
+            self.batch_file_paths = file_names
+            self.batch_process_btn.setEnabled(True)
+            
+            # Update ROI checkbox state
+            if self.roi_rect:
+                self.use_roi_checkbox.setEnabled(True)
+                self.use_roi_checkbox.setText(f'Use ROI from Single Image Tab ({self.roi_rect})')
+            else:
+                self.use_roi_checkbox.setEnabled(False)
+                self.use_roi_checkbox.setText('Use ROI from Single Image Tab (No ROI set)')
+    
+    def clear_batch_list(self):
+        self.file_list.clear()
+        self.batch_file_paths = []
+        self.batch_process_btn.setEnabled(False)
+        self.use_roi_checkbox.setEnabled(False)
+        self.results_table.setRowCount(0)
+        self.batch_results = []
+        self.batch_export_btn.setEnabled(False)
+    
+    def start_batch_processing(self):
+        if not hasattr(self, 'batch_file_paths') or not self.batch_file_paths:
+            return
+        
+        # Get processing parameters
+        preprocessing_method = self.batch_preprocess_combo.currentText()
+        threshold_value = self.batch_threshold_slider.value()
+        roi_rect = self.roi_rect if self.use_roi_checkbox.isChecked() else None
+        
+        # Clear previous results
+        self.results_table.setRowCount(0)
+        self.batch_results = []
+        self.progress_bar.setValue(0)
+        
+        # Disable controls
+        self.batch_process_btn.setEnabled(False)
+        self.batch_cancel_btn.setEnabled(True)
+        self.batch_load_btn.setEnabled(False)
+        self.batch_clear_btn.setEnabled(False)
+        
+        # Start batch processor thread
+        self.batch_processor = BatchProcessor(
+            self.batch_file_paths, preprocessing_method, threshold_value, roi_rect)
+        self.batch_processor.progress_updated.connect(self.update_batch_progress)
+        self.batch_processor.file_processed.connect(self.add_batch_result)
+        self.batch_processor.finished_processing.connect(self.batch_processing_finished)
+        self.batch_processor.start()
+    
+    def cancel_batch_processing(self):
+        if self.batch_processor:
+            self.batch_processor.cancel()
+            self.batch_processor.wait()
+        self.batch_processing_finished()
+    
+    def update_batch_progress(self, value):
+        self.progress_bar.setValue(value)
+    
+    def add_batch_result(self, filename, text, status):
+        row = self.results_table.rowCount()
+        self.results_table.insertRow(row)
+        
+        # Add items to table
+        self.results_table.setItem(row, 0, QTableWidgetItem(filename))
+        self.results_table.setItem(row, 1, QTableWidgetItem(status))
+        
+        # Truncate text for display but store full text
+        display_text = text[:100] + "..." if len(text) > 100 else text
+        self.results_table.setItem(row, 2, QTableWidgetItem(display_text))
+        
+        # Store full result
+        self.batch_results.append({
+            'filename': filename,
+            'text': text,
+            'status': status,
+            'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        })
+        
+        # Auto-scroll to latest result
+        self.results_table.scrollToBottom()
+    
+    def batch_processing_finished(self):
+        # Re-enable controls
+        self.batch_process_btn.setEnabled(True)
+        self.batch_cancel_btn.setEnabled(False)
+        self.batch_load_btn.setEnabled(True)
+        self.batch_clear_btn.setEnabled(True)
+        
+        if self.batch_results:
+            self.batch_export_btn.setEnabled(True)
+            
+        # Show completion message
+        successful = len([r for r in self.batch_results if r['status'] == 'Success'])
+        total = len(self.batch_results)
+        
+        QMessageBox.information(self, "Batch Processing Complete", 
+                              f"Processing completed!\n"
+                              f"Successfully processed: {successful}/{total} images")
+    
+    def export_batch_results(self):
+        if not self.batch_results:
+            return
+        
+        # Get export file path
+        file_path, _ = QFileDialog.getSaveFileName(
+            self, "Export Batch Results", 
+            f"batch_ocr_results_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt",
+            "Text Files (*.txt);;CSV Files (*.csv)")
+        
+        if not file_path:
+            return
+        
+        try:
+            if file_path.endswith('.csv'):
+                self.export_to_csv(file_path)
+            else:
+                self.export_to_txt(file_path)
+            
+            QMessageBox.information(self, "Export Complete", 
+                                  f"Results exported successfully to:\n{file_path}")
+        except Exception as e:
+            QMessageBox.critical(self, "Export Error", 
+                               f"Failed to export results:\n{str(e)}")
+    
+    def export_to_txt(self, file_path):
+        with open(file_path, 'w', encoding='utf-8') as f:
+            f.write("OCR Batch Processing Results\n")
+            f.write("=" * 50 + "\n")
+            f.write(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+            f.write(f"Total files processed: {len(self.batch_results)}\n\n")
+            
+            for i, result in enumerate(self.batch_results, 1):
+                f.write(f"File {i}: {result['filename']}\n")
+                f.write(f"Status: {result['status']}\n")
+                f.write(f"Processed: {result['timestamp']}\n")
+                f.write("Extracted Text:\n")
+                f.write("-" * 30 + "\n")
+                f.write(result['text'] if result['text'] else "(No text detected)")
+                f.write("\n" + "=" * 50 + "\n\n")
+    
+    def export_to_csv(self, file_path):
+        import csv
+        with open(file_path, 'w', newline='', encoding='utf-8') as f:
+            writer = csv.writer(f)
+            writer.writerow(['Filename', 'Status', 'Timestamp', 'Extracted Text'])
+            
+            for result in self.batch_results:
+                writer.writerow([
+                    result['filename'],
+                    result['status'], 
+                    result['timestamp'],
+                    result['text'].replace('\n', ' ').replace('\r', ' ')
+                ])
+    
+    def update_roi_checkbox(self):
+        """Update the ROI checkbox in batch tab when ROI changes in single tab"""
+        if hasattr(self, 'use_roi_checkbox'):
+            if self.roi_rect:
+                self.use_roi_checkbox.setEnabled(True)
+                self.use_roi_checkbox.setText(f'Use ROI from Single Image Tab {self.roi_rect}')
+            else:
+                self.use_roi_checkbox.setEnabled(False)
+                self.use_roi_checkbox.setText('Use ROI from Single Image Tab (No ROI set)')
+                self.use_roi_checkbox.setChecked(False)
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)

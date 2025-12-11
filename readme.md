@@ -23,9 +23,17 @@ A comprehensive GUI-based OCR (Optical Character Recognition) scanner built with
 - Display extracted text in dedicated text area
 - Text overlay showing detected text positions on image
 
+✅ **Batch Processing**
+- Process multiple images at once
+- Apply consistent preprocessing to all images
+- Export results to TXT or CSV format
+- Progress tracking and cancellation support
+- Use ROI settings from single image processing
+
 ✅ **User-Friendly Interface**
 - Clean, organized GUI with grouped controls
-- Real-time preview
+- Tabbed interface for single and batch processing
+- Real-time preview and progress tracking
 - Easy-to-use buttons and controls
 
 ## Prerequisites
