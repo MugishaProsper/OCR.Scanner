@@ -139,6 +139,11 @@ class SingleImageTab(QWidget):
         self.overlay_btn.setEnabled(False)
         ocr_layout.addWidget(self.overlay_btn)
         
+        self.edit_text_btn = QPushButton('Edit Text')
+        self.edit_text_btn.clicked.connect(self.edit_text)
+        self.edit_text_btn.setEnabled(False)
+        ocr_layout.addWidget(self.edit_text_btn)
+        
         ocr_group.setLayout(ocr_layout)
         left_panel.addWidget(ocr_group)
         
@@ -345,6 +350,7 @@ class SingleImageTab(QWidget):
             text = ImageProcessor.run_ocr(ocr_image, language)
             self.text_output.setText(text)
             self.overlay_btn.setEnabled(True)
+            self.edit_text_btn.setEnabled(True)
             logger.info(f"OCR completed successfully with language: {language}")
             
         except Exception as e:
@@ -391,3 +397,20 @@ class SingleImageTab(QWidget):
         except Exception as e:
             self.text_output.append(f"\nOverlay Error: {str(e)}")
             logger.error(f"Overlay failed: {e}")
+    
+    def edit_text(self):
+        """Open text editor for OCR result correction."""
+        current_text = self.text_output.toPlainText()
+        if not current_text.strip():
+            return
+            
+        from .text_editor_dialog import TextEditorDialog
+        
+        dialog = TextEditorDialog(current_text, self)
+        dialog.text_corrected.connect(self.on_text_corrected)
+        dialog.exec_()
+        
+    def on_text_corrected(self, corrected_text: str):
+        """Handle corrected text from editor."""
+        self.text_output.setText(corrected_text)
+        logger.info("Text corrected by user")
