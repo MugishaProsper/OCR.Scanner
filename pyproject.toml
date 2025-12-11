@@ -1,0 +1,106 @@
+[build-system]
+requires = ["setuptools>=45", "wheel", "setuptools_scm[toml]>=6.2"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ocr-scanner"
+version = "1.1.0"
+description = "Advanced OCR Scanner with Batch Processing capabilities"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [
+    {name = "GANZA Chael", email = "ganzac784@gmail.com"}
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: End Users/Desktop",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Multimedia :: Graphics :: Capture :: Scanners",
+    "Topic :: Scientific/Engineering :: Image Recognition",
+]
+requires-python = ">=3.7"
+dependencies = [
+    "PyQt5>=5.15.0",
+    "opencv-python>=4.8.0",
+    "pytesseract>=0.3.10",
+    "Pillow>=10.0.0",
+    "numpy>=1.24.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=6.0",
+    "pytest-qt>=4.0",
+    "pytest-cov>=3.0",
+    "black>=21.0",
+    "flake8>=3.8",
+    "mypy>=0.800",
+    "isort>=5.0",
+]
+
+[project.scripts]
+ocr-scanner = "ocr_scanner.main:main"
+
+[project.urls]
+Homepage = "https://github.com/Chael250/ocr-scanner"
+Repository = "https://github.com/Chael250/ocr-scanner.git"
+Issues = "https://github.com/Chael250/ocr-scanner/issues"
+
+[tool.black]
+line-length = 88
+target-version = ['py37']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | build
+  | dist
+)/
+'''
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+line_length = 88
+known_first_party = ["ocr_scanner"]
+
+[tool.mypy]
+python_version = "3.7"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+strict_equality = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "--strict-markers",
+    "--strict-config",
+    "--cov=src/ocr_scanner",
+    "--cov-report=term-missing",
+    "--cov-report=html",
+]

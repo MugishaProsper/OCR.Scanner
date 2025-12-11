@@ -1,0 +1,8 @@
+include README.md
+include LICENSE
+include requirements.txt
+include requirements-dev.txt
+recursive-include src/ocr_scanner/assets *
+recursive-include src/ocr_scanner/config *
+recursive-exclude * __pycache__
+recursive-exclude * *.py[co]
