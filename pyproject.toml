@@ -9,7 +9,7 @@ description = "Advanced OCR Scanner with Batch Processing capabilities"
 readme = "README.md"
 license = {text = "MIT"}
 authors = [
-    {name = "GANZA Chael", email = "ganzac784@gmail.com"}
+    {name = "Mugisha Prosper", email = "nelsonprox92@gmail.com"}
 ]
 classifiers = [
     "Development Status :: 4 - Beta",

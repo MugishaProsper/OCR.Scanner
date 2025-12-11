@@ -61,7 +61,7 @@ pip install -r requirements.txt
 
 ```bash
 # Clone the repository
-git clone https://github.com/Chael250/ocr-scanner.git
+git clone https://github.com/MugishaProsper/OCR.Scanner.git
 cd ocr-scanner
 
 # Create virtual environment (recommended)
@@ -82,7 +82,7 @@ pip install ocr-scanner
 
 ```bash
 # Clone and install dependencies only
-git clone https://github.com/Chael250/ocr-scanner.git
+git clone https://github.com/MugishaProsper/OCR.Scanner.git
 cd ocr-scanner
 pip install -r requirements.txt
 ```
@@ -329,7 +329,7 @@ For the assignment submission, your video should show:
 
 ```bash
 # Clone repository
-git clone https://github.com/Chael250/ocr-scanner.git
+git clone https://github.com/MugishaProsper/OCR.Scanner.git
 cd ocr-scanner
 
 # Create virtual environment
